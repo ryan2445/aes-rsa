@@ -62,6 +62,9 @@ def add_round_key(s, k):
             s[i][j] ^= k[i][j]
 
 def mix_columns_helper(x, y):
+    #   x is the multiplication number from the matrix
+    #   y is the number from the plaintext that is being encrypted
+
     if x == 1: return y
     if x == 2: return (((y << 1) ^ 0x1B) & 0xFF) if (y & 0x80) else (y << 1)
     if x == 3: return ((((y << 1) ^ 0x1B) & 0xFF) ^ y) if (y & 0x80) else ((y << 1) ^ y)
@@ -90,6 +93,7 @@ def mix_columns(s):
         for j in range(4):
             temp[i][j] = mix_columns_helper(transform[i][0], s[0][j]) ^ mix_columns_helper(transform[i][1], s[1][j]) ^ mix_columns_helper(transform[i][2], s[2][j]) ^ mix_columns_helper(transform[i][3], s[3][j])
 
+    #   Copy temp to the plaintext block
     for i in range(4):
         for j in range(4):
             s[i][j] = temp[i][j]
@@ -113,34 +117,70 @@ def inv_mix_columns(s):
         for j in range(4):
             temp[i][j] = mix_columns_helper(transform[i][0], s[0][j]) ^ mix_columns_helper(transform[i][1], s[1][j]) ^ mix_columns_helper(transform[i][2], s[2][j]) ^ mix_columns_helper(transform[i][3], s[3][j])
 
+    #   Copy temp to the plaintext block
     for i in range(4):
         for j in range(4):
             s[i][j] = temp[i][j]
 
+
+#   MAIN
 key = [
-    [0x01, 0x01, 0x01, 0x01],
-    [0x01, 0x01, 0x01, 0x01],
-    [0x01, 0x01, 0x01, 0x01],
-    [0x01, 0x01, 0x01, 0x01]
+    [
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01]
+    ],
+    [
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01]
+    ],
+    [
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01],
+        [0x01, 0x01, 0x01, 0x01]
+    ]
 ]
 
 plaintext = [
-    [0x00, 0x04, 0x08, 0x0C],
-    [0x01, 0x05, 0x09, 0x0D],
-    [0x02, 0x06, 0x0A, 0x0E],
-    [0x03, 0x07, 0x0B, 0x0F]
+    [
+        [0x00, 0x04, 0x08, 0x0C],
+        [0x01, 0x05, 0x09, 0x0D],
+        [0x02, 0x06, 0x0A, 0x0E],
+        [0x03, 0x07, 0x0B, 0x0F]
+    ],
+    [
+        [0x00, 0x04, 0x08, 0x0C],
+        [0x01, 0x05, 0x09, 0x0D],
+        [0x02, 0x06, 0x0A, 0x0E],
+        [0x03, 0x07, 0x0B, 0x0F]
+    ],
+    [
+        [0x00, 0x04, 0x08, 0x0C],
+        [0x01, 0x05, 0x09, 0x0D],
+        [0x02, 0x06, 0x0A, 0x0E],
+        [0x03, 0x07, 0x0B, 0x0F]
+    ]
 ]
 
-add_round_key(plaintext, key)
-sub_bytes(plaintext)
-shift_rows(plaintext)
-mix_columns(plaintext)
+for i in range(len(plaintext)):
+    add_round_key(plaintext[i], key[i])
+    sub_bytes(plaintext[i])
+    shift_rows(plaintext[i])
+    mix_columns(plaintext[i])
 
+print("AES CBC Mode Encryption Result:")
 print(plaintext)
 
-inv_mix_columns(plaintext)
-inv_shift_rows(plaintext)
-inv_sub_bytes(plaintext)
-add_round_key(plaintext, key)
+for j in range(len(plaintext)):
+    inv_mix_columns(plaintext[j])
+    inv_shift_rows(plaintext[j])
+    inv_sub_bytes(plaintext[j])
+    add_round_key(plaintext[j], key[j])
 
+print("\n")
+print("AES CBC Mode Decryption Result")
 print(plaintext)
