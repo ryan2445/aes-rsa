@@ -62,7 +62,7 @@ def add_round_key(s, k):
             s[i][j] ^= k[i][j]
 
 def mix_columns_helper(x, y):
-    #   x is the multiplication number from the matrix
+    #   x is the multiplication number from the matrix (0x01, 0x02, 0x03, etc.)
     #   y is the number from the plaintext that is being encrypted
 
     if x == 1: return y
@@ -125,24 +125,10 @@ def inv_mix_columns(s):
 
 #   MAIN
 key = [
-    [
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01]
-    ],
-    [
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01]
-    ],
-    [
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01],
-        [0x01, 0x01, 0x01, 0x01]
-    ]
+    [0x01, 0x01, 0x01, 0x01],
+    [0x01, 0x01, 0x01, 0x01],
+    [0x01, 0x01, 0x01, 0x01],
+    [0x01, 0x01, 0x01, 0x01]
 ]
 
 plaintext = [
@@ -167,7 +153,7 @@ plaintext = [
 ]
 
 for i in range(len(plaintext)):
-    add_round_key(plaintext[i], key[i])
+    add_round_key(plaintext[i], key)
     sub_bytes(plaintext[i])
     shift_rows(plaintext[i])
     mix_columns(plaintext[i])
@@ -179,7 +165,7 @@ for j in range(len(plaintext)):
     inv_mix_columns(plaintext[j])
     inv_shift_rows(plaintext[j])
     inv_sub_bytes(plaintext[j])
-    add_round_key(plaintext[j], key[j])
+    add_round_key(plaintext[j], key)
 
 print("\n")
 print("AES CBC Mode Decryption Result")
