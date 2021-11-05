@@ -61,7 +61,7 @@ def add_round_key(s, k):
         for j in range(4):
             s[i][j] ^= k[i][j]
 
-def mix_columns_helper(x, y):
+def mix_columns_multiply(x, y):
     #   x is the multiplication number from the matrix (0x01, 0x02, 0x03, etc.)
     #   y is the number from the plaintext that is being encrypted
 
@@ -69,10 +69,14 @@ def mix_columns_helper(x, y):
     if x == 2: return (((y << 1) ^ 0x1B) & 0xFF) if (y & 0x80) else (y << 1)
     if x == 3: return ((((y << 1) ^ 0x1B) & 0xFF) ^ y) if (y & 0x80) else ((y << 1) ^ y)
     
-    if x == 9: return mix_columns_helper(2, mix_columns_helper(2, mix_columns_helper(2, y))) ^ y
-    if x == 11: return mix_columns_helper(2, mix_columns_helper(2, mix_columns_helper(2, y)) ^ y) ^ y
-    if x == 13: return mix_columns_helper(2, mix_columns_helper(2, mix_columns_helper(2, y) ^ y)) ^ y
-    if x == 14: return mix_columns_helper(2, mix_columns_helper(2, mix_columns_helper(2, y) ^ y) ^ y)
+    #   Multiplying y by 9 is equivalent to (((y * 2) * 2) * 2) + y
+    if x == 9: return mix_columns_multiply(2, mix_columns_multiply(2, mix_columns_multiply(2, y))) ^ y
+    #   Multiplying by 11 is equivalent to ((((y * 2) * 2)  + y) * 2) + y
+    if x == 11: return mix_columns_multiply(2, mix_columns_multiply(2, mix_columns_multiply(2, y)) ^ y) ^ y
+    #   Multiplying by 13 is equivalent to ((((y * 2) + y) * 2) * 2) + y
+    if x == 13: return mix_columns_multiply(2, mix_columns_multiply(2, mix_columns_multiply(2, y) ^ y)) ^ y
+    #   Multiplying by 14 is equivalent to ((((y * 2) + y) * 2) + y) * 2
+    if x == 14: return mix_columns_multiply(2, mix_columns_multiply(2, mix_columns_multiply(2, y) ^ y) ^ y)
 
 def mix_columns(s):
     temp = [
@@ -89,9 +93,10 @@ def mix_columns(s):
         [0x03, 0x01, 0x01, 0x02]
     ]
 
+    #   Multiplying rows from the transform with columns from the ciphertext and XORing them
     for i in range(4):
         for j in range(4):
-            temp[i][j] = mix_columns_helper(transform[i][0], s[0][j]) ^ mix_columns_helper(transform[i][1], s[1][j]) ^ mix_columns_helper(transform[i][2], s[2][j]) ^ mix_columns_helper(transform[i][3], s[3][j])
+            temp[i][j] = mix_columns_multiply(transform[i][0], s[0][j]) ^ mix_columns_multiply(transform[i][1], s[1][j]) ^ mix_columns_multiply(transform[i][2], s[2][j]) ^ mix_columns_multiply(transform[i][3], s[3][j])
 
     #   Copy temp to the plaintext block
     for i in range(4):
@@ -113,9 +118,10 @@ def inv_mix_columns(s):
         [0x0B, 0x0D, 0x09, 0x0E]
     ]
 
+    #   Multiplying rows from the transform with columns from the ciphertext and XORing them
     for i in range(4):
         for j in range(4):
-            temp[i][j] = mix_columns_helper(transform[i][0], s[0][j]) ^ mix_columns_helper(transform[i][1], s[1][j]) ^ mix_columns_helper(transform[i][2], s[2][j]) ^ mix_columns_helper(transform[i][3], s[3][j])
+            temp[i][j] = mix_columns_multiply(transform[i][0], s[0][j]) ^ mix_columns_multiply(transform[i][1], s[1][j]) ^ mix_columns_multiply(transform[i][2], s[2][j]) ^ mix_columns_multiply(transform[i][3], s[3][j])
 
     #   Copy temp to the plaintext block
     for i in range(4):
